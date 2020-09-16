@@ -1,5 +1,6 @@
 int itterations = 1024;
 int hueCount = 1024;
+PImage colorArray;
 
 MainIterator mainIterator;
 
