@@ -2,10 +2,9 @@ class MainIterator {
 
 
   float zoomPosX, zoomPosY, zoomScale;
-  color[] colors;
+  color[][] colors;
   int[] iterationMap; 
   int chunksIterated, chunkSize, chunksWidth, chunksHeight;
-
 
   MainIterator(float posX, float posY, float scale) {
     zoomPosX = posX;
@@ -14,17 +13,21 @@ class MainIterator {
     colors = setupColors();
     iterationMap = new int[width*height]; // Stores the itteration values for every sample point (ex: every pixel's numerical location)
     chunksIterated = 0;
-    chunkSize = 128;
-    chunksWidth = ceil(width/chunkSize);
-    chunksHeight = ceil(height/chunkSize);
+    chunkSize = 16;
+    chunksWidth = ceil(width/float(chunkSize));
+    chunksHeight = ceil(height/float(chunkSize));
   }
 
 
   void renderIterations() { // Renders image by iterating through rendering chunks
-    if (chunksIterated < chunksWidth*chunksHeight) {
+    int startTime = millis();
+    int chunkTime = 0;
+
+    while (chunksIterated < chunksWidth*chunksHeight && chunkTime < 1000/frameRate) {
       int x = (chunksIterated % chunksWidth) * chunkSize;
       int y = floor(chunksIterated / chunksWidth) * chunkSize;
       iterateChunk(x, y, chunkSize, chunkSize);
+      chunkTime = millis() - startTime;
       chunksIterated++;
     }
     renderIterationMap();
@@ -48,8 +51,9 @@ class MainIterator {
     for (int y = yMin; y < yMax; y++) { // Generates chunk's numberical y values from pixel indices
       yValues[y] = (height/2.0 - y)*ratio + posY;
     }
-    for (int x = xMin; x < xMax; x++) {
-      for (int y = yMin; y < yMax; y++) { // Iterates through chunk pixel indicies and passes numberical cordinates to the itteration calculator
+    
+    for (int x = xMin; x < xMax; x++) { // Iterates through chunk pixel indicies and passes numberical cordinates to the itteration calculator
+      for (int y = yMin; y < yMax; y++) { 
         iterationMap[x+width*y] = calc(xValues[x], yValues[y]);
       }
     }
@@ -59,7 +63,7 @@ class MainIterator {
   void renderIterationMap() {
     loadPixels();
     for (int i = 0; i < width*height; i++) {
-      pixels[i] = colors[iterationMap[i]];
+      pixels[i] = colors[frameCount%hueCount][iterationMap[i]];
     }
     updatePixels();
   }
